@@ -1,0 +1,31 @@
+#lang scheme
+
+;constructores
+
+;player
+(define player(lambda(id name color wins losses draws remaining-pieces)
+               (list id name color wins losses draws remaining-pieces)
+  ))
+;piezas
+(define piece(lambda(color)
+               (list color)
+               )
+  )
+;board
+
+(define (board)
+  (make-list 7 (make-list 6 'empty))
+  );lista de 7 listas con 6 elementos cada una // apoyo: gpt codepilot
+
+;modificar board
+
+(define (empty-board board)
+                     (define (empty-column column) ;modificar una lista dada, de forma que todos sus elementos serán cambiados por 0
+                                           (map (lambda (x) 0) column))
+                     (map empty-column board)) ;ejecutar (map funcion board), de esta manera se ejecuta "empty-column" en cada columna del tablero
+;apoyo: gpt codepilot
+
+(define p1 (player 1 "juan" "rojo" 0 0 0 21))
+(define color-rojo (piece "rojo"))
+(display p1)
+(display color-rojo)
