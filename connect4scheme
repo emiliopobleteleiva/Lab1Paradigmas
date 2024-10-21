@@ -85,46 +85,88 @@
                      )
                  )
   )
+; funcion que reemplaza elemento especifico de una lista por otro
+(define replace-with(lambda(lista pos elemento)
+                      (define recursiva(lambda(lista pos elemento listout aux)
+                                         (if (null? lista) listout ;si se esta en la ultima posicion +1 de la lista, devolver listout
+                                             (if (= aux pos) (recursiva (cdr lista) pos elemento (append listout (list elemento)) (+ aux 1))
+                                                 (recursiva (cdr lista) pos elemento (append listout (list (car lista))) (+ aux 1))
+                                                 )
+                                             )
+                                         )
+                        )
+                      (recursiva lista pos elemento '() 1)
+                      )
+  )
 
-;probando // borrar de aqui
+;quizás hacer la misma funcion pero aux = len-1?
+(define largo-lista(lambda(lista)
+                     (define recursiva(lambda(lista aux)
+                                        (if (null? lista) aux
+                                            (recursiva (cdr lista) (+ aux 1))
+                                            )
+                                        )
+                       )
+                     (recursiva lista 1)
+                     )
+  )
+
+;definir inverse replace with
+(define inverse-replace-with(lambda(lista pos elemento)
+                              (replace-with lista (- (largo-lista lista) pos) elemento)
+                              )
+  )
+
+;test replace-with
 
 (define lista1 (list 1 2 3 4 5 6))
-(display (anticar lista1)) ;deberia devolver 6 / devuelve lista, cabiar el lista por (car lista)
+(display (replace-with lista1 5 "coso"))
 (newline)
-;probando
-
-(define lista2 (list 1 2 3 4 5 6))
-(display (anticdr lista2)) ;deberia devolver (1 2 3 4 5)
+(display (inverse-replace-with lista1 1 "coso"))
 (newline)
-;probando
-(elemento lista2 5);deberia devolver 5
-; //borrar hasta aca
 
+;funcion board-set-play-piece, comprueba si la jugada es posible, y la realiza
 (define board-set-play-piece(lambda(board column piece); board (lista), column (numero posicion), piece (string)
-                         (define recursiva(lambda(board boardaux column filaActual filaSiguiente piece)
-                                            (if (not (equal board boardaux));condicion if1 / si board y boardaux no son iguales
-                                                (if (and (or (null? ) (not (= (elemento filaSiguiente column)  0))) (= (elemento ilaActual column) 0));condicion if2
-                                                    (display ";then poner pieza actual en esta posicion.");then2
-                                                    (recursiva board (anticdr boardaux) column (anticar (anticdr (anticdr boardaux))) (anticar (anticdr boardaux)) piece);else2
+                         (define recursiva(lambda(board boardaux column fila filaActual filaSiguiente piece)
+                                            (if (and (not (null? (anticdr (anticdr boardaux)))) (not (equal? board boardaux)));condicion if1 / si board y boardaux no son iguales // falta agregar en el caso de que se esté en la fila mas alta
+                                                (if (and (not (= (elemento filaSiguiente column)  0)) (= (elemento filaActual column) 0));condicion if2
+                                                    (inverse-replace-with board fila (replace-with filaActual column piece));then2
+                                                    (recursiva board (anticdr boardaux) column (+ fila 1) (anticar (anticdr (anticdr boardaux))) (anticar (anticdr boardaux)) piece);else2
                                                     );cierre if2/then1
-                                                (if (= (elemento (anticar board) column));if3 / si posicion de jugada es 0
-                                                    (display "poner pieza en esta posicion");then3
-                                                    (recursiva board (anticdr boardaux) column (anticar (anticdr (anticdr boardaux))) (anticar (anticdr boardaux)) piece);else3
+                                                (if (equal? (elemento (anticar board) column) 0);if3 / si posicion de jugada es 0
+                                                    (inverse-replace-with board fila (replace-with filaActual column piece));then3
+                                                    (recursiva board (anticdr boardaux) column (+ fila 1) (anticar (anticdr (anticdr boardaux))) (anticar (anticdr boardaux)) piece);else3
                                                     );else1
                                             );cierre if1
                            )); cierre define recursiva
-                         (recursiva board board column (anticar board) '() piece)
+                         (recursiva board board column 1 (anticar board) '() piece)
 ));cierre define board-set-play-piece
+
+;test anticdr, comprobar si anticdr al llegar a su ultimo elemento tira error o null (probablemente tire error) / no tira error, funciona correctamente
+(define lista-anticdr(list 1 2 3))
+(display lista-anticdr)
+(newline)
+(display (null? (anticdr (anticdr (anticdr lista-anticdr)))))
+(newline)
+;pruebas anticar, al igual que car, si se trata de obtener car de '() se devuelve error
+(display "pruebas anticar")
+(newline)
+(display (anticar (anticdr lista-anticdr)))
 
 ;testing
 (newline)
-(define p1 (player 1 "juan" "rojo" 0 0 0 21))
-(define color-rojo (piece "rojo"))
-(display p1)
-(newline)
-(display color-rojo)
-(newline)
-
+(display "test funciones board")
 (define board1 (empty-board (board)))
 (display board1)
-(board-can-play? board1)
+(newline)
+(display "board-set-play-piece test")
+(newline)
+(define piece1 (piece "red"))
+(display (board-set-play-piece board1 3 piece1))
+(newline)
+(display (board-set-play-piece (board-set-play-piece board1 3 piece1) 3 piece1))
+
+;errores: se reemplaza en la primera lista(solve: hay que hacer una funcion como replace-with pero alrevez), al tratar de hacerlo recursivo tampoco hubo cambios. //en condicion if2 hay un (or (null? ) (cond2)), hay que completar la con
+;errores2: Hay que probar la nueva funcion inverse-replace-with // funciona para el primer caso
+;errores3: (display (board-set-play-piece (board-set-play-piece board1 2 piece1) 3 piece1)) funciona, pero (display (board-set-play-piece (board-set-play-piece board1 3 piece1) 3 piece1))
+;esto tiene que ver con las condiciones if más externas de board-set-play-piece, para (= (elemento) 0) el elemento es "Piece" un TDA, pero el programa esta esperando un numero
