@@ -128,17 +128,17 @@
 
 ;funcion board-set-play-piece, comprueba si la jugada es posible, y la realiza
 (define board-set-play-piece(lambda(board column piece)
-                              (define recursiva(lambda(board boardaux column fila fila-actual fila-siguiente piece)
+                              (define recursiva(lambda(board boardaux column fila fila-actual piece)
                                                  (if (equal? (elemento fila-actual column) 0);abrir if principal / si elemento señalado es 0, entonces
                                                      (inverse-replace-with board fila (replace-with fila-actual column piece));then principal
-                                                     (if (null? fila-siguiente);if interno, comprobar si la siguiente fila es nula
-                                                         (display "Columna completa, probar con otro valor");then / failsafe
-                                                         (recursiva board (anticdr boardaux) column (+ fila 1) fila-siguiente (anticar (anticdr (anticdr boardaux))) piece);error1: no se puede poner "anticar" a una lista vacia, da error,
+                                                     (if (null? boardaux);if interno, comprobar si la siguiente fila es nula
+                                                         (begin (display "Columna completa, probar con otro valor") board);then / failsafe
+                                                         (recursiva board (anticdr boardaux) column (+ fila 1) (anticar boardaux) piece);error1: no se puede poner "anticar" a una lista vacia, da error,
                                                          );else principal 
                                                          );cierre if principal 
                                                        )
                                                  )
-                              (recursiva board board column 1 (anticar board) (anticar (anticdr board)) piece)
+                              (recursiva board (anticdr board) column 1 (anticar board) piece)
                               )
   )
 
@@ -147,7 +147,8 @@
 (define board1 (empty-board (board)))
 (newline)
 (display "board-set-play-piece test")
+(newline)
 (define piece1 (piece "red"))
-(display-board (board-set-play-piece (board-set-play-piece (board-set-play-piece (board-set-play-piece (board-set-play-piece (board-set-play-piece board1 3 piece1) 3 piece1) 3 piece1) 3 piece1) 3 piece1) 3 piece1))
+(display-board (board-set-play-piece (board-set-play-piece (board-set-play-piece (board-set-play-piece (board-set-play-piece (board-set-play-piece (board-set-play-piece (board-set-play-piece board1 3 piece1) 3 piece1) 3 piece1) 3 piece1) 3 piece1) 3 piece1) 3 piece1) 3 piece1))
 
 ;para nueva funcion definida, funciona hasta que se llega a la penultima linea
