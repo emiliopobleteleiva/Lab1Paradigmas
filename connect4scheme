@@ -116,57 +116,38 @@
                               (replace-with lista (- (largo-lista lista) pos) elemento)
                               )
   )
-
-;test replace-with
-
-(define lista1 (list 1 2 3 4 5 6))
-(display (replace-with lista1 5 "coso"))
-(newline)
-(display (inverse-replace-with lista1 1 "coso"))
-(newline)
+;definir display-board
+(define display-board(lambda(board)
+                       (newline)
+                       (if (null? (cdr board))
+                           (begin (display (car board)) (display "done"))
+                           (begin (display (car board)) (display-board (cdr board)))
+                           )
+                       )
+  ) ;apoyo gpt codecopilot / aplicar "begin"
 
 ;funcion board-set-play-piece, comprueba si la jugada es posible, y la realiza
-(define board-set-play-piece(lambda(board column piece); board (lista), column (numero posicion), piece (string)
-                         (define recursiva(lambda(board boardaux column fila filaActual filaSiguiente piece)
-                                            (if (and (not (null? (anticdr (anticdr boardaux)))) (not (equal? board boardaux)));condicion if1 / si board y boardaux no son iguales // falta agregar en el caso de que se esté en la fila mas alta
-                                                (if (and (not (= (elemento filaSiguiente column)  0)) (= (elemento filaActual column) 0));condicion if2
-                                                    (inverse-replace-with board fila (replace-with filaActual column piece));then2
-                                                    (recursiva board (anticdr boardaux) column (+ fila 1) (anticar (anticdr (anticdr boardaux))) (anticar (anticdr boardaux)) piece);else2
-                                                    );cierre if2/then1
-                                                (if (equal? (elemento (anticar board) column) 0);if3 / si posicion de jugada es 0
-                                                    (inverse-replace-with board fila (replace-with filaActual column piece));then3
-                                                    (recursiva board (anticdr boardaux) column (+ fila 1) (anticar (anticdr (anticdr boardaux))) (anticar (anticdr boardaux)) piece);else3
-                                                    );else1
-                                            );cierre if1
-                           )); cierre define recursiva
-                         (recursiva board board column 1 (anticar board) '() piece)
-));cierre define board-set-play-piece
-
-;test anticdr, comprobar si anticdr al llegar a su ultimo elemento tira error o null (probablemente tire error) / no tira error, funciona correctamente
-(define lista-anticdr(list 1 2 3))
-(display lista-anticdr)
-(newline)
-(display (null? (anticdr (anticdr (anticdr lista-anticdr)))))
-(newline)
-;pruebas anticar, al igual que car, si se trata de obtener car de '() se devuelve error
-(display "pruebas anticar")
-(newline)
-(display (anticar (anticdr lista-anticdr)))
+(define board-set-play-piece(lambda(board column piece)
+                              (define recursiva(lambda(board boardaux column fila fila-actual fila-siguiente piece)
+                                                 (if (equal? (elemento fila-actual column) 0);abrir if principal / si elemento señalado es 0, entonces
+                                                     (inverse-replace-with board fila (replace-with fila-actual column piece));then principal
+                                                     (if (null? fila-siguiente);if interno, comprobar si la siguiente fila es nula
+                                                         (display "Columna completa, probar con otro valor");then / failsafe
+                                                         (recursiva board (anticdr boardaux) column (+ fila 1) fila-siguiente (anticar (anticdr (anticdr boardaux))) piece);error1: no se puede poner "anticar" a una lista vacia, da error,
+                                                         );else principal 
+                                                         );cierre if principal 
+                                                       )
+                                                 )
+                              (recursiva board board column 1 (anticar board) (anticar (anticdr board)) piece)
+                              )
+  )
 
 ;testing
-(newline)
 (display "test funciones board")
 (define board1 (empty-board (board)))
-(display board1)
 (newline)
 (display "board-set-play-piece test")
-(newline)
 (define piece1 (piece "red"))
-(display (board-set-play-piece board1 3 piece1))
-(newline)
-(display (board-set-play-piece (board-set-play-piece board1 3 piece1) 3 piece1))
+(display-board (board-set-play-piece (board-set-play-piece (board-set-play-piece (board-set-play-piece (board-set-play-piece (board-set-play-piece board1 3 piece1) 3 piece1) 3 piece1) 3 piece1) 3 piece1) 3 piece1))
 
-;errores: se reemplaza en la primera lista(solve: hay que hacer una funcion como replace-with pero alrevez), al tratar de hacerlo recursivo tampoco hubo cambios. //en condicion if2 hay un (or (null? ) (cond2)), hay que completar la con
-;errores2: Hay que probar la nueva funcion inverse-replace-with // funciona para el primer caso
-;errores3: (display (board-set-play-piece (board-set-play-piece board1 2 piece1) 3 piece1)) funciona, pero (display (board-set-play-piece (board-set-play-piece board1 3 piece1) 3 piece1))
-;esto tiene que ver con las condiciones if más externas de board-set-play-piece, para (= (elemento) 0) el elemento es "Piece" un TDA, pero el programa esta esperando un numero
+;para nueva funcion definida, funciona hasta que se llega a la penultima linea
