@@ -36,7 +36,88 @@
                                )
                          )
   )
+
+;board set piece (preparaciones)
+
+;debería llegar abajo y subir para ver si este elemento esta disponible, lo voy a hacer primero definiendo funciones similares a car o cdr pero alreves
+
+;funcion anticar, similar a car, pero devuelve el ultimo elemento de la lista
+(define anticar (lambda(lista)
+                  (if (null? (cdr lista)) (car lista)
+                      (anticar (cdr lista))
+                      )
+                  )
+  )
+
+;funcion anticdr, similar a cdr pero alrevez, devuelve toda la lista menos el ultimo elemento
+(define anticdr(lambda(lista)
+                 (define recursiva(lambda(lista listout)
+                                    (if (null? (cdr lista)) listout
+                                        (recursiva (cdr lista) (append listout (list (car lista)))) ;error1: le di 5 en lugar de '(5), resolver cambiando el (car lista) por (list (car lista))
+                                        ;error2: se está tratando de asignar valor a listout, deberia hacerse esto en la ejecucion de la funcion recursiva
+                                        )
+                                    )
+                   )
+                 (recursiva lista '())
+                 )
+  )
+
+;funcion elementoN(lista n) que devuelva el elemento situadio en la posicion n de la lista
+
+(define elemento(lambda(lista n)
+                  (define recursiva(lambda(lista n aux)
+                                     (if (= aux n) (car lista)
+                                         (recursiva (cdr lista) n (+ aux 1))
+                                         )
+                                     )
+                    )
+                  (recursiva lista n 1)
+                  )
+  )
+
+;funcion de si es ultimo elemento de una lista
+(define isLast?(lambda(lista elemento)
+                 (if (null? (cdr lista)) 
+                     (if(= elemento (car lista)) #t
+                        (isLast? (cdr lista) elemento)
+                        )
+                     (#f)
+                     )
+                 )
+  )
+
+;probando // borrar de aqui
+
+(define lista1 (list 1 2 3 4 5 6))
+(display (anticar lista1)) ;deberia devolver 6 / devuelve lista, cabiar el lista por (car lista)
+(newline)
+;probando
+
+(define lista2 (list 1 2 3 4 5 6))
+(display (anticdr lista2)) ;deberia devolver (1 2 3 4 5)
+(newline)
+;probando
+(elemento lista2 5);deberia devolver 5
+; //borrar hasta aca
+
+(define board-set-play-piece(lambda(board column piece); board (lista), column (numero posicion), piece (string)
+                         (define recursiva(lambda(board boardaux column filaActual filaSiguiente piece)
+                                            (if (not (equal board boardaux));condicion if1 / si board y boardaux no son iguales
+                                                (if (and (or (null? ) (not (= (elemento filaSiguiente column)  0))) (= (elemento ilaActual column) 0));condicion if2
+                                                    (display ";then poner pieza actual en esta posicion.");then2
+                                                    (recursiva board (anticdr boardaux) column (anticar (anticdr (anticdr boardaux))) (anticar (anticdr boardaux)) piece);else2
+                                                    );cierre if2/then1
+                                                (if (= (elemento (anticar board) column));if3 / si posicion de jugada es 0
+                                                    (display "poner pieza en esta posicion");then3
+                                                    (recursiva board (anticdr boardaux) column (anticar (anticdr (anticdr boardaux))) (anticar (anticdr boardaux)) piece);else3
+                                                    );else1
+                                            );cierre if1
+                           )); cierre define recursiva
+                         (recursiva board board column (anticar board) '() piece)
+));cierre define board-set-play-piece
+
 ;testing
+(newline)
 (define p1 (player 1 "juan" "rojo" 0 0 0 21))
 (define color-rojo (piece "rojo"))
 (display p1)
