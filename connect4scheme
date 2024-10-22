@@ -66,8 +66,10 @@
 
 (define elemento(lambda(lista n)
                   (define recursiva(lambda(lista n aux)
-                                     (if (= aux n) (car lista)
-                                         (recursiva (cdr lista) n (+ aux 1))
+                                     (if (null? lista) "out or range"
+                                         (if (= aux n) (car lista)
+                                             (recursiva (cdr lista) n (+ aux 1))
+                                             )
                                          )
                                      )
                     )
@@ -142,13 +144,141 @@
                               )
   )
 
-;testing
-(display "test funciones board")
-(define board1 (empty-board (board)))
-(newline)
-(display "board-set-play-piece test")
-(newline)
-(define piece1 (piece "red"))
-(display-board (board-set-play-piece (board-set-play-piece (board-set-play-piece (board-set-play-piece (board-set-play-piece (board-set-play-piece (board-set-play-piece (board-set-play-piece board1 3 piece1) 3 piece1) 3 piece1) 3 piece1) 3 piece1) 3 piece1) 3 piece1) 3 piece1))
 
-;para nueva funcion definida, funciona hasta que se llega a la penultima linea
+;checkwin universal
+
+(define checkwin(lambda(lista)
+                  (define recursiva(lambda(lista cant piece)
+                                     (if (= cant 4) piece ;se devuelve la pieza ganadora
+                                         (if (null? lista) "continuar"
+                                             (if (not (equal? (car lista) 0))
+                                                 (if (equal? (car lista) piece)
+                                                     (recursiva (cdr lista) (+ cant 1) piece);then
+                                                     (recursiva (cdr lista) 1 (car lista))
+                                                     )
+                                                 (recursiva (cdr lista) 1 "piece")
+                                                 )
+                                             )
+                                         )
+                                     )
+                    )
+                  (recursiva lista 1 "piece")
+                  )
+  )
+
+;aplicar checkwin vertical
+
+;funciones de ayuda
+
+(define obtener-lista-vertical(lambda(board column)
+                        (define recursiva(lambda(boardaux column lista)
+                                           (if (null? boardaux) lista
+                                               (recursiva (anticdr boardaux) column (append lista (list (elemento (anticar boardaux) column))))
+                                               )
+                                           )
+                          )
+                        (recursiva board column '())
+                        )
+  )
+
+;definir checkwin vertical
+(define cw-vertical(lambda(board)
+                     (define recursiva(lambda(board columna lista-vertical listaux)
+                                        (if (equal? (checkwin lista-vertical) "continuar")
+                                            (if (null? listaux) "nadie gana"
+                                                (recursiva board (+ columna 1) (obtener-lista-vertical board columna) (cdr listaux))
+                                                );then
+                                            (checkwin lista-vertical)
+                                            )
+                                        )
+                       )
+                     (recursiva board 1 (obtener-lista-vertical board 1) (car board))
+                     )
+  );funciona correctamente, datos de más: board, listaux? (se usa para el caso de que board sea de tamaño variable, en este caso es solo de 6)
+;aplicar checkwin horizontal
+
+(define cw-horizontal(lambda(board)
+                       (define recursiva(lambda(board boardaux fila)
+                                          (if (equal? (checkwin fila) "continuar")
+                                              (if (null? boardaux) "nadie gana"
+                                               (recursiva board (anticdr boardaux) (anticar boardaux)))
+                                              (checkwin fila)
+                                              )
+                                          )
+                         )
+                       (recursiva board (anticdr board) (anticar board))
+                       )
+  );funciona correctamente
+                                            
+
+;aplicar checkwin diagonal
+
+(define lista-diagonal(lambda(board x y direccion); board list, x int, y int, direccion string
+                        (define recursiva(lambda(board x y direccion listout)
+                                           (if (or (or (= x 0) (= x 7)) (or (= y 0) (= y 8))) listout ;si x no esta entre 1 y 6 (incluyendo) e y no esta entre 1 y 7, devolver lista
+                                               (if (equal? direccion "derecha")
+                                                   (recursiva board (+ x 1) (+ y 1) direccion (append listout (list (elemento (elemento board y) x))));then
+                                                   (recursiva board (- x 1) (+ y 1) direccion (append listout (list (elemento (elemento board y) x))));else
+                                                   );else
+                                               )
+                                           )
+                          )
+                        (recursiva board x y direccion '())
+                        )
+  )
+
+;check todas las diagonales
+(define cw-diagonal(lambda(board)
+                     (define recursiva(lambda(board x y direccion wincon)
+                                        (if (equal? wincon "continuar")
+                                            (if (equal? direccion "derecha")
+                                                (if (and (= x 3) (= y 1))
+                                                    wincon;terminar
+                                                    (if (= y 1)
+                                                        (recursiva board (+ x 1) y direccion (checkwin (lista-diagonal board (+ x 1) y direccion)))
+                                                        (recursiva board x (- y 1) direccion (checkwin (lista-diagonal board x (- y 1) direccion)))
+                                                        )
+                                                    );con listadiagonal a derecha
+                                                (if (and (= x 4) (= y 1))
+                                                    wincon;
+                                                    (if (= y 1)
+                                                        (recursiva board (- x 1) y direccion (checkwin (lista-diagonal board (- x 1) y direccion)))
+                                                        (recursiva board x (- y 1) direccion (checkwin (lista-diagonal board x (- y 1) direccion)))
+                                                        )
+                                                    );a la izquierda
+                                                );recursion
+                                            wincon;else devolver wincon ACTUAL
+                                            )
+                                        )
+                       )
+                     (if (equal? (recursiva board 1 4 "derecha" (checkwin (lista-diagonal board 1 4 "derecha"))) "continuar")
+                         (recursiva board 1 4 "derecha" (checkwin (lista-diagonal board 6 4 "izquierda")))
+                         (recursiva board 1 4 "derecha" (checkwin (lista-diagonal board 1 4 "derecha")))
+                         )
+                     )
+  )
+
+;definir una funcion que aplique los tres algoritmos de checkboard // modificar la salida de todas las funciones para que sean consistentes
+
+
+
+;lista diagonal
+;testing elementos
+(define listatest1 (list 1 2 3 4 5 6))
+(elemento listatest1 9) ;da error en el caso de que se pida un elemento fuera del rango // arreglado // condicion si lista es nula, devolver "out of range"
+
+;testing
+(define lista1 (list "red" "red" "red" "blue" "blue" "blue"))
+(checkwin lista1) ;pareciera funcionar // error, toma 0 como "piece" // arreglado
+(newline)
+(define board1 (list (list "red" 0 0 0 0 "blue")
+                     (list 0 "red" 0 0 "blue" 0)
+                     (list 0 0 0 "blue" 0 0)
+                     (list 0 0 "blue" "red" "red" "red")
+                     (list 0 0 0 "blue" "red" "blue")
+                     (list 0 0 0 0 "blue" "blue")
+                     (list 0 0 0 0 "red" "blue") ))
+(display-board board1)
+(newline)
+(newline)
+(display (cw-diagonal board1))
