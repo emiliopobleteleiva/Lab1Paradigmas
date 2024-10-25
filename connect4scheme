@@ -6,6 +6,15 @@
 (define player(lambda(id name color wins losses draws remaining-pieces)
                (list id name color wins losses draws remaining-pieces)
   ))
+
+;funcion que devuelve el player que ganó
+(define whowon(lambda(player1info player2info wincon)
+                (if (member wincon player1info)
+                    (elemento player1info 1)
+                    (elemento player2info 1)
+                    )
+                )
+  )
 ;piezas
 (define piece(lambda(color)
                (list color)
@@ -15,7 +24,7 @@
 
 (define (board)
   (make-list 7 (make-list 6 'empty))
-  );lista de 7 listas con 6 elementos cada una // apoyo: gpt codepilot
+  );lista de 7 listas con 6 elementos cada una // apoyo: gpt codecopilot
 
 ;modificar board
 
@@ -23,7 +32,7 @@
                      (define (empty-column column) ;modificar una lista dada, de forma que todos sus elementos serán cambiados por 0
                                            (map (lambda (x) 0) column))
                      (map empty-column board)) ;ejecutar (map funcion board), de esta manera se ejecuta "empty-column" en cada columna del tablero
-;//apoyo: gpt codepilot
+;//apoyo: gpt codecopilot
 
 ;board / otros
 
@@ -135,7 +144,7 @@
                                                      (inverse-replace-with board fila (replace-with fila-actual column piece));then principal
                                                      (if (null? boardaux);if interno, comprobar si la siguiente fila es nula
                                                          (begin (display "Columna completa, probar con otro valor") board);then / failsafe
-                                                         (recursiva board (anticdr boardaux) column (+ fila 1) (anticar boardaux) piece);error1: no se puede poner "anticar" a una lista vacia, da error,
+                                                         (recursiva board (anticdr boardaux) column (+ fila 1) (anticar boardaux) piece)
                                                          );else principal 
                                                          );cierre if principal 
                                                        )
@@ -164,7 +173,7 @@
                     )
                   (recursiva lista 1 "piece")
                   )
-  )
+  ) 
 
 ;aplicar checkwin vertical
 
@@ -181,14 +190,15 @@
                         )
   )
 
+;A TODOS LOS CHECKWIN, CAMBIAR RECORRIDO, DEVOLER 1 SI PLAYER 1 GANA, 2 SI PLAYER 2 GANA, 0 SI NADIE GANA
 ;definir checkwin vertical
 (define cw-vertical(lambda(board)
                      (define recursiva(lambda(board columna lista-vertical listaux)
                                         (if (equal? (checkwin lista-vertical) "continuar")
-                                            (if (null? listaux) "nadie gana"
+                                            (if (null? listaux) 0
                                                 (recursiva board (+ columna 1) (obtener-lista-vertical board columna) (cdr listaux))
                                                 );then
-                                            (checkwin lista-vertical)
+                                            (whowon p1 (checkwin lista-vertical))
                                             )
                                         )
                        )
@@ -200,9 +210,9 @@
 (define cw-horizontal(lambda(board)
                        (define recursiva(lambda(board boardaux fila)
                                           (if (equal? (checkwin fila) "continuar")
-                                              (if (null? boardaux) "nadie gana"
+                                              (if (null? boardaux) 0
                                                (recursiva board (anticdr boardaux) (anticar boardaux)))
-                                              (checkwin fila)
+                                              (whowon p1 (checkwin fila))
                                               )
                                           )
                          )
@@ -230,36 +240,62 @@
 ;check todas las diagonales
 (define cw-diagonal(lambda(board)
                      (define recursiva(lambda(board x y direccion wincon)
-                                        (if (equal? wincon "continuar")
+                                        (if (equal? wincon "continuar");esto está de más
                                             (if (equal? direccion "derecha")
                                                 (if (and (= x 3) (= y 1))
-                                                    wincon;terminar
+                                                    (if (equal? wincon "continuar")
+                                                        (recursiva board 6 4 "izquierda" (checkwin (lista-diagonal board 6 4 "izquierda")))
+                                                        (whowon p1 wincon)
+                                                        );terminar
                                                     (if (= y 1)
                                                         (recursiva board (+ x 1) y direccion (checkwin (lista-diagonal board (+ x 1) y direccion)))
                                                         (recursiva board x (- y 1) direccion (checkwin (lista-diagonal board x (- y 1) direccion)))
                                                         )
                                                     );con listadiagonal a derecha
                                                 (if (and (= x 4) (= y 1))
-                                                    wincon;
+                                                    (if (equal? wincon "continuar")
+                                                        0
+                                                        (whowon p1 wincon)
+                                                        );
                                                     (if (= y 1)
                                                         (recursiva board (- x 1) y direccion (checkwin (lista-diagonal board (- x 1) y direccion)))
                                                         (recursiva board x (- y 1) direccion (checkwin (lista-diagonal board x (- y 1) direccion)))
                                                         )
                                                     );a la izquierda
                                                 );recursion
-                                            wincon;else devolver wincon ACTUAL
+                                            (whowon p1 wincon) ;else devolver wincon ACTUAL // está de más probablemente
                                             )
                                         )
-                       )
-                     (if (equal? (recursiva board 1 4 "derecha" (checkwin (lista-diagonal board 1 4 "derecha"))) "continuar")
-                         (recursiva board 1 4 "derecha" (checkwin (lista-diagonal board 6 4 "izquierda")))
-                         (recursiva board 1 4 "derecha" (checkwin (lista-diagonal board 1 4 "derecha")))
-                         )
+                       ); mala ejecucion, encontrar una lógica más acertada
+                     (recursiva board 1 4 "derecha" (checkwin (lista-diagonal board 1 4 "derecha")))
                      )
   )
 
 ;definir una funcion que aplique los tres algoritmos de checkboard // modificar la salida de todas las funciones para que sean consistentes
+(define board-who-is-winner(lambda(board)
+                             (define recursiva(lambda(board aux winner)
+                                          (if (zero? winner)
+                                              (cond
+                                                ((= aux 1) (recursiva board (+ aux 1) (cw-vertical board)))
+                                                ((= aux 2) (recursiva board (+ aux 1) (cw-horizontal board)))
+                                                ((= aux 3) (recursiva board (+ aux 1) (cw-diagonal board)))
+                                                (else 0)
+                                                )
+                                              winner
+                                              )
+                                          )
+                               )
+                             (recursiva board 1 0)
+                             )
+  )
 
+;game
+(define game(lambda(player1 player2 board current-turn)
+              (define (list player1 player2 board current-turn)
+                )
+              )
+  )
+                                              
 
 
 ;lista diagonal
@@ -268,17 +304,21 @@
 (elemento listatest1 9) ;da error en el caso de que se pida un elemento fuera del rango // arreglado // condicion si lista es nula, devolver "out of range"
 
 ;testing
+(define p1 (player 1 "leo" "red" 0 0 0 21))
+(define p2 (player 2 "homie" "blue" 0 0 0 21))
+
+
 (define lista1 (list "red" "red" "red" "blue" "blue" "blue"))
 (checkwin lista1) ;pareciera funcionar // error, toma 0 como "piece" // arreglado
 (newline)
-(define board1 (list (list "red" 0 0 0 0 "blue")
-                     (list 0 "red" 0 0 "blue" 0)
-                     (list 0 0 0 "blue" 0 0)
-                     (list 0 0 "blue" "red" "red" "red")
-                     (list 0 0 0 "blue" "red" "blue")
-                     (list 0 0 0 0 "blue" "blue")
-                     (list 0 0 0 0 "red" "blue") ))
+(define board1 (list (list 0 0 0 0 0 0)
+                     (list 0 0 0 0 0 0)
+                     (list 0 0 0 0 0 0)
+                     (list "blue" 0 0 "red" 0 0)
+                     (list "blue" 0 "red" "blue" 0 0)
+                     (list "blue" "red" 0 0 0 0)
+                     (list "red" 0 0 0 0 0) ))
 (display-board board1)
 (newline)
 (newline)
-(display (cw-diagonal board1))
+(display (board-who-is-winner board1))
