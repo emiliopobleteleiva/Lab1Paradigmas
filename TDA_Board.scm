@@ -1,25 +1,5 @@
 #lang scheme
 
-;constructores
-
-;player
-(define player(lambda(id name color wins losses draws remaining-pieces)
-               (list id name color wins losses draws remaining-pieces)
-  ))
-
-;funcion que devuelve el player que ganó
-(define whowon(lambda(player1info player2info wincon)
-                (if (member wincon player1info)
-                    (elemento player1info 1)
-                    (elemento player2info 1)
-                    )
-                )
-  )
-;piezas
-(define piece(lambda(color)
-               (list color)
-               )
-  )
 
 ;board
 
@@ -89,7 +69,7 @@
 
 ;funcion de si es ultimo elemento de una lista
 (define isLast?(lambda(lista elemento)
-                 (if (null? (cdr lista)) 
+                 (if (null? (cdr lista))
                      (if(= elemento (car lista)) #t
                         (isLast? (cdr lista) elemento)
                         )
@@ -146,13 +126,14 @@
                                                      (if (null? boardaux);if interno, comprobar si la siguiente fila es nula
                                                          (begin (display "Columna completa, probar con otro valor") board);then / failsafe
                                                          (recursiva board (anticdr boardaux) column (+ fila 1) (anticar boardaux) piece)
-                                                         );else principal 
-                                                         );cierre if principal 
+                                                         );else principal
+                                                         );cierre if principal
                                                        )
                                                  )
                               (recursiva board (anticdr board) column 1 (anticar board) piece)
                               )
   )
+
 
 
 ;checkwin universal
@@ -174,7 +155,7 @@
                     )
                   (recursiva lista 1 "piece")
                   )
-  ) 
+  )
 
 ;aplicar checkwin vertical
 
@@ -220,7 +201,7 @@
                        (recursiva board (anticdr board) (anticar board))
                        )
   );funciona correctamente
-                                            
+
 
 ;aplicar checkwin diagonal
 
@@ -272,28 +253,4 @@
                      )
   )
 
-;definir una funcion que aplique los tres algoritmos de checkboard // modificar la salida de todas las funciones para que sean consistentes
-(define board-who-is-winner(lambda(board)
-                             (define recursiva(lambda(board aux winner)
-                                          (if (zero? winner)
-                                              (cond
-                                                ((= aux 1) (recursiva board (+ aux 1) (cw-vertical board)))
-                                                ((= aux 2) (recursiva board (+ aux 1) (cw-horizontal board)))
-                                                ((= aux 3) (recursiva board (+ aux 1) (cw-diagonal board)))
-                                                (else 0)
-                                                )
-                                              winner
-                                              )
-                                          )
-                               )
-                             (recursiva board 1 0)
-                             )
-  )
-
-;game
-(define game(lambda(player1 player2 board current-turn)
-              (define (list player1 player2 board current-turn)
-                )
-              )
-  )
-                                              
+(provide board empty-board board-can-play? board-set-play-piece checkwin cw-vertical cw-horizontal cw-diagonal display-board)
