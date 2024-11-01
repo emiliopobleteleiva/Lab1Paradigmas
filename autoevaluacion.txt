@@ -1,0 +1,11 @@
+Lamentablemente, debido a mal manejo del tiempo con los otros ramos y las circumstancias personales, no se pudo terminar el código de manera
+satisfactoria.
+
+El último commit de git es una agrupación de archivos sin estructuración que permitan un funcionamiento eficaz del proyecto.
+
+En el desarrollo del proyecto hubo una curva de aprendizaje sobre el uso de funciones recursivas de manera natural o de cola
+esto permitió un crecimiento en las habilidades de programación con respecto a la definición de funciones de manera modular
+y la aplicación de estas.
+
+En general, el proyecto no fue logrado, a pesar de haber definido una mayoría de las RF pedidas en el documento del enunciado, no hubo finalmente una
+conclusion satisfactoria en el formato de entrega.
